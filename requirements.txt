@@ -1,0 +1,13 @@
+streamlit>=1.50
+numpy
+pandas
+pillow
+opencv-python-headless
+torch
+torchvision
+ultralytics
+
+# Optional: Real-ESRGAN super-resolution stage
+# (if basicsr fails with "functional_tensor" errors, install basicsr from its GitHub master)
+# realesrgan
+# basicsr

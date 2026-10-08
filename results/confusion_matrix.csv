@@ -1,0 +1,7 @@
+,Fog,Low-Light,Normal,Rain,Sand-Dust,Snow
+Fog,1,0,0,0,0,0
+Low-Light,0,1,0,0,0,0
+Normal,0,0,1,0,0,0
+Rain,0,0,0,1,0,0
+Sand-Dust,0,0,0,0,1,0
+Snow,0,0,0,0,0,1

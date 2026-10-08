@@ -1,0 +1,66 @@
+{
+  "classes": [
+    "Fog",
+    "Low-Light",
+    "Normal",
+    "Rain",
+    "Sand-Dust",
+    "Snow"
+  ],
+
+  "confidence_threshold": 0.8,
+
+  "classifier": {
+    "weights": "models/classifier.pth",
+    "arch": "efficientnet_b0",
+    "input_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+
+  "esrgan": {
+    "enabled": true,
+    "weights": "models/RealESRGAN_x4plus.pth",
+    "scale": 4,
+    "tile": 256,
+    "tile_pad": 10,
+    "pre_pad": 0,
+    "max_input_side": 512,
+    "apply_to_original": false
+  },
+
+  "detector": {
+    "name": "YOLO11s",
+    "weights": "models/yolo11s.pt",
+    "conf": 0.25,
+    "iou": 0.45,
+    "imgsz": 640
+  },
+
+  "vlm": {
+    "enabled": true,
+    "model": "HuggingFaceTB/SmolVLM-500M-Instruct",
+    "max_new_tokens": 120,
+    "temperature": 0.2
+  },
+
+  "results": {
+    "classifier_csv": "results/classifier_results.csv",
+    "detector_csv": "results/detection_results.csv",
+    "confusion_csv": "results/confusion_matrix.csv",
+    "confusion_png": "results/confusion_matrix.png",
+    "per_condition_csv": "results/per_condition_results.csv",
+    "processed_image": "results/processed_input.jpg",
+    "esrgan_image": "results/esrgan_output.jpg"
+  },
+
+  "samples_dir": "samples"
+}

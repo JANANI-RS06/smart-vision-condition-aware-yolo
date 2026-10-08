@@ -1,0 +1,9 @@
+Object,Confidence
+car,0.8805068135261536
+car,0.8139438033103943
+car,0.7600358128547668
+person,0.7536396980285645
+motorcycle,0.6775546669960022
+car,0.503642737865448
+car,0.3129647672176361
+"samples\image1.png","yolo11s","Fog","0.9577","car|car|truck|truck|car|car|person","141050.41","C:\Users\Lakshanadevi M\Downloads\smart-vision\smart-vision\results\yolo11s_result.jpg"
