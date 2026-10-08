@@ -1,10 +1,16 @@
 <img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/efc3b36d-c440-4442-8544-f93975749c10" />🌦️ Smart Vision — Condition-Aware Object Detection
+
+# 🌦️ Smart Vision — Condition-Aware Object Detection
+
 <p align="center">
   <img src="assets/smart-vision-overview.png" alt="Smart Vision project overview" width="100%">
 </p>
+
 <p align="center">
-  <b>Adaptive Computer Vision for Real-World Weather & Low-Visibility Conditions</b>
+  <b>Look at the weather first. Then decide how to see.</b><br>
+  An adaptive computer-vision pipeline that classifies the environmental condition of an image and only enhances it when it actually needs it.
 </p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white">
   <img src="https://img.shields.io/badge/PyTorch-Deep%20Learning-ee4c2c?logo=pytorch&logoColor=white">
@@ -12,234 +18,200 @@
   <img src="https://img.shields.io/badge/YOLO-Object%20Detection-111111">
   <img src="https://img.shields.io/badge/Real--ESRGAN-Super--Resolution-orange">
   <img src="https://img.shields.io/badge/SmolVLM-Visual%20Explanation-ffcc00">
+  <img src="https://img.shields.io/badge/Use-Academic%20%26%20Research-lightgrey">
 </p>
----
-🚀 What is Smart Vision?
-Smart Vision is a condition-aware computer vision pipeline designed for images captured in challenging environments.
-Instead of sending every image through the same processing path, the system first identifies the environmental condition and then decides whether enhancement is necessary.
-It combines:
-🧠 EfficientNet-B0 for environmental-condition classification
-🎚️ Confidence Gate to avoid unnecessary processing
-🛠️ Condition-specific preprocessing for difficult visual conditions
-🔍 Real-ESRGAN for super-resolution
-🎯 YOLO for object detection
-💬 SmolVLM-500M-Instruct for natural-language visual explanation
-Supported conditions
-Condition	Purpose
-🌫️ Fog	Handle reduced visibility
-🌙 Low-Light	Improve dark-scene representation
-☀️ Normal	Keep the original image
-🌧️ Rain	Process rain-affected scenes
-🏜️ Sand-Dust	Handle dusty environments
-❄️ Snow	Process snow-affected scenes
----
-
 
 ---
-✨ Why This Pipeline?
-Traditional object detection pipelines often apply the same preprocessing to every image.
-Smart Vision follows a different idea:
+
+## 💡 The Idea
+
+Most detection pipelines treat every image the same: enhance everything, or enhance nothing. Both waste something. Enhancing a clear image can add artifacts and compute cost. Skipping enhancement on a foggy or dark image throws away recoverable detail.
+
+**Smart Vision routes each image based on what it actually looks like.**
+
 > **Understand the environment first, then adapt the vision pipeline.**
-This makes the pipeline more suitable for:
-🚗 Road-scene understanding
-🌧️ Adverse-weather images
-🌫️ Low-visibility environments
-🚦 Intelligent transportation systems
-🤖 Adaptive computer vision research
----
-🔬 Core Workflow
-1. Condition Classification
-EfficientNet-B0 predicts one of six environmental conditions.
-```text
-Input Image
-     ↓
-Resize → 224 × 224
-     ↓
-ImageNet Normalization
-     ↓
-EfficientNet-B0
-     ↓
-Condition + Confidence
-```
-2. Confidence Gate
-The system uses an 80% confidence threshold.
-```text
-Confidence ≥ 80%
-        │
-        ├── Normal → Original Image
-        │
-        └── Other condition → Enhancement Pipeline
 
-Confidence < 80%
-        │
-        └── Fallback → Original Image
-```
-This prevents uncertain predictions from triggering unnecessary image processing.
-3. Condition-Specific Enhancement
-Different conditions receive different preprocessing.
-```text
-Low-Light  → Gamma / Contrast Enhancement
-Fog        → Visibility Enhancement
-Rain       → Rain-Streak Processing
-Snow       → Contrast / Enhancement
-Sand-Dust  → Contrast / Enhancement
-Normal     → No Enhancement
-```
-4. Real-ESRGAN
-After condition-specific processing, Real-ESRGAN can improve image resolution before detection.
-```text
-Processed Image
-      ↓
-Real-ESRGAN ×4
-      ↓
-Higher-Resolution Image
-```
-5. YOLO Detection
-The enhanced image is passed to YOLO for object detection.
-The project supports YOLO model weights such as:
-YOLOv8s
-YOLO11s
-YOLO26s
-The current configuration can be changed through `config.json`.
-6. SmolVLM Explanation
-SmolVLM receives the visual result and produces a concise explanation containing:
-Environmental condition
-Main detected objects
-Effect of the condition on visibility/detection
-The explanation is generated from the image and detection context rather than using a separate XAI/Grad-CAM module.
+### What makes it different
+
+| Typical pipeline | Smart Vision |
+|---|---|
+| Same preprocessing for every image | Preprocessing chosen per detected condition |
+| Always enhance, or never enhance | **Confidence gate** skips enhancement when the model is unsure or the scene is normal |
+| Output is boxes and labels only | Adds a **natural-language explanation** of how conditions affect visibility |
+| Monolithic script | Modular stages (`classifier`, `gate`, `enhancers`, `detector`, `vlm`) that can be swapped independently |
+| Hard-coded settings | Everything tunable from a single `config.json` |
+
+### Supported conditions
+
+| Condition | Handling |
+|---|---|
+| 🌫️ Fog | Visibility enhancement |
+| 🌙 Low-Light | Gamma / contrast enhancement |
+| 🌧️ Rain | Rain-streak processing |
+| ❄️ Snow | Contrast / enhancement |
+| 🏜️ Sand-Dust | Contrast / enhancement |
+| ☀️ Normal | Original image kept, no enhancement |
+
+### Good fit for
+
+🚗 Road-scene understanding · 🚦 Intelligent transportation research · 🌧️ Adverse-weather vision · 🤖 Adaptive CV experiments
+
 ---
-📊 Model Results
-Environmental Condition Classifier
-Model	Test Accuracy	Precision	Recall	F1
-ResNet-18	81.75%	83.08	81.75	81.23
-EfficientNet-B0	83.33%	83.31	83.33	83.10
-EfficientNet-B0 was selected for the final condition-classification pipeline because it provided the stronger baseline accuracy with substantially fewer parameters.
-YOLO Benchmark
-A clean YOLO26s benchmark reported:
-Metric	Score
-Precision	86.49%
-Recall	57.86%
-mAP@50	70.21%
-mAP@50–95	43.44%
-> Results can change with dataset split, preprocessing, confidence threshold, model weights, and hardware.
+
+## 🧩 How It Works
+
+```mermaid
+flowchart TD
+    A[/"🖼️ Input Image"/] --> B["🧠 EfficientNet-B0<br/>Condition Classification"]
+    B --> C{"🎚️ Confidence Gate<br/>threshold = 80%"}
+    C -->|"Normal, or confidence < 80%"| F["🎯 YOLO<br/>Object Detection"]
+    C -->|"Difficult condition, confidence ≥ 80%"| D["🛠️ Condition-Specific<br/>Preprocessing"]
+    D --> E["🔍 Real-ESRGAN ×4<br/>Super-Resolution"]
+    E --> F
+    F --> G["📦 Detected Objects"]
+    G --> H["💬 SmolVLM-500M<br/>Visual Explanation"]
+    H --> I[/"✅ Annotated Image +<br/>Natural-Language Output"/]
+```
+
+### Stage by stage
+
+**1. Condition classification.** The image is resized to 224 × 224, ImageNet-normalized, and passed to EfficientNet-B0, which returns one of six conditions plus a confidence score.
+
+**2. Confidence gate.** The gate is what keeps the pipeline from over-processing.
+
+| Prediction | Confidence | Action |
+|---|---|---|
+| Normal | ≥ 80% | Original image goes straight to detection |
+| Fog / Low-Light / Rain / Snow / Sand-Dust | ≥ 80% | Enhancement pipeline |
+| Any | < 80% | Fallback: original image (uncertain predictions never trigger processing) |
+
+**3. Condition-specific enhancement.** Each condition has its own preprocessing routine in `pipeline/enhancers.py`.
+
+**4. Real-ESRGAN.** Processed images can be upscaled ×4 before detection to recover fine detail for small objects.
+
+**5. YOLO detection.** Supports YOLOv8s, YOLO11s and YOLO26s weights. Switch models from `config.json` or the command line.
+
+**6. SmolVLM explanation.** SmolVLM-500M-Instruct receives the image and detection context and writes a short explanation covering:
+1. The environmental condition
+2. The main detected objects
+3. How the condition affects visibility and detection
+
+The explanation is generated by the vision-language model from the image and detections; there is no separate Grad-CAM/XAI module.
+
 ---
-🗂️ Project Structure
+
+## 📊 Results
+
+### Environmental condition classifier
+
+| Model | Test Accuracy | Precision | Recall | F1 |
+|---|---:|---:|---:|---:|
+| ResNet-18 | 81.75% | 83.08 | 81.75 | 81.23 |
+| **EfficientNet-B0** ✅ | **83.33%** | **83.31** | **83.33** | **83.10** |
+
+EfficientNet-B0 was chosen for the final pipeline: higher accuracy with substantially fewer parameters than ResNet-18.
+
+### YOLO benchmark (YOLO26s, clean setting)
+
+| Metric | Score |
+|---|---:|
+| Precision | 86.49% |
+| Recall | 57.86% |
+| mAP@50 | 70.21% |
+| mAP@50–95 | 43.44% |
+
+> Precision is high while recall is moderate: the detector is conservative and misses some objects. Results vary with dataset split, preprocessing, confidence threshold, model weights and hardware.
+
+<!-- TIP: add a before/after gallery here (original vs enhanced vs detections for each condition). Visual proof is the strongest part of any CV README.
+<p align="center"><img src="assets/before-after.png" width="90%"></p>
+-->
+
+---
+
+## 🗂️ Project Structure
+
 ```text
 smart-vision-condition-aware-yolo/
-│
-├── config.json
-├── inference.py
+├── config.json              # all pipeline settings
+├── inference.py             # CLI entry point
 ├── requirements.txt
 ├── README.md
 │
 ├── pipeline/
-│   ├── classifier.py
-│   ├── detector.py
-│   ├── enhancers.py
-│   ├── gate.py
-│   ├── runner.py
-│   └── vlm.py
+│   ├── classifier.py        # EfficientNet-B0 condition classifier
+│   ├── gate.py              # confidence-gate logic
+│   ├── enhancers.py         # per-condition preprocessing
+│   ├── detector.py          # YOLO wrapper
+│   ├── vlm.py               # SmolVLM explanation
+│   └── runner.py            # orchestrates the full pipeline
 │
 ├── models/
 │   ├── classifier.pth
 │   ├── yolo11s.pt
 │   └── RealESRGAN_x4plus.pth
 │
-├── samples/
-│   └── sample images
-│
+├── samples/                 # test images
 └── results/
     ├── processed_input.jpg
     ├── esrgan_output.jpg
     ├── detection_results.csv
     └── classifier_results.csv
 ```
-> Large model weights are intentionally excluded from GitHub in most setups. Download or place them locally according to your project configuration.
+
+> Large model weights are usually excluded from GitHub. Download them and place them in `models/` according to your configuration.
+
 ---
-⚙️ Configuration
-Most pipeline settings are controlled from `config.json`.
-Example:
-```json
-{
-  "classes": [
-    "Fog",
-    "Low-Light",
-    "Normal",
-    "Rain",
-    "Sand-Dust",
-    "Snow"
-  ],
-  "confidence_threshold": 0.8,
-  "classifier": {
-    "arch": "efficientnet_b0",
-    "input_size": 224
-  },
-  "detector": {
-    "name": "YOLO11s",
-    "conf": 0.25,
-    "iou": 0.45,
-    "imgsz": 640
-  },
-  "vlm": {
-    "enabled": true,
-    "model": "HuggingFaceTB/SmolVLM-500M-Instruct"
-  }
-}
-```
----
-🛠️ Installation
-1. Clone
+
+## 🚀 Quick Start
+
+### 1. Clone
+
 ```bash
 git clone https://github.com/JANANI-RS06/smart-vision-condition-aware-yolo.git
 cd smart-vision-condition-aware-yolo
 ```
-2. Create virtual environment
-Windows
+
+### 2. Create a virtual environment
+
 ```bash
+# Windows
 python -m venv venv
 venv\Scripts\activate
-```
-Linux / macOS
-```bash
+
+# Linux / macOS
 python3 -m venv venv
 source venv/bin/activate
 ```
-3. Install dependencies
+
+### 3. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
----
-▶️ Run Inference
-Place a test image inside `samples/`.
-Then run:
+
+### 4. Add model weights
+
+Place `classifier.pth`, your YOLO weights and `RealESRGAN_x4plus.pth` inside `models/`.
+
+### 5. Run inference
+
 ```bash
 python inference.py "samples/image1.jpg"
-```
-For a different YOLO model:
-```bash
+
+# choose a different YOLO model
 python inference.py "samples/image1.jpg" yolo11s
 ```
-The pipeline will display/save:
-```text
-Condition
-Confidence
-Gate Decision
-Preprocessing Status
-ESRGAN Status
-Detected Objects
-VLM Explanation
-Inference Time
-```
-Output images and CSV files are stored in the configured `results/` directory.
----
-💡 Example Output
+
+Each run reports: condition, confidence, gate decision, preprocessing status, ESRGAN status, detected objects, VLM explanation and inference time. Output images and CSVs are saved to `results/`.
+
+### Example output
+
 ```text
 Condition      : Fog
 Confidence     : 92.4%
 
 Gate Decision  : PROCESSING APPLIED
 Processing     : Fog enhancement
-
 ESRGAN         : Applied
 
 Detected       : car, truck, person
@@ -248,45 +220,83 @@ VLM Explanation:
 The fog reduces visibility around the vehicles and person,
 which can make object detection more challenging.
 ```
+
 ---
-🧰 Technology Stack
-Area	Technology
-Language	Python
-Deep Learning	PyTorch
-Condition Classifier	EfficientNet-B0
-Image Processing	OpenCV, NumPy, Pillow
-Super-Resolution	Real-ESRGAN
-Object Detection	Ultralytics YOLO
-Vision-Language Model	SmolVLM-500M-Instruct
-Data Handling	Pandas
-Visualization	Matplotlib
+
+## ⚙️ Configuration
+
+Everything lives in `config.json`:
+
+```json
+{
+  "classes": ["Fog", "Low-Light", "Normal", "Rain", "Sand-Dust", "Snow"],
+  "confidence_threshold": 0.8,
+  "classifier": { "arch": "efficientnet_b0", "input_size": 224 },
+  "detector": { "name": "YOLO11s", "conf": 0.25, "iou": 0.45, "imgsz": 640 },
+  "vlm": { "enabled": true, "model": "HuggingFaceTB/SmolVLM-500M-Instruct" }
+}
+```
+
+| Setting | What it controls |
+|---|---|
+| `confidence_threshold` | Gate strictness. Higher means fewer images enhanced, lower means more |
+| `detector.conf` / `iou` | YOLO confidence and NMS thresholds |
+| `detector.imgsz` | Detection input size |
+| `vlm.enabled` | Set `false` to skip explanations and run faster |
+
 ---
-🎯 Project Goals
-Build a condition-aware computer vision pipeline
-Improve detection under adverse visual conditions
-Avoid unnecessary image enhancement
-Compare detection performance across processing strategies
-Generate human-readable visual explanations
-Keep the pipeline modular and easy to experiment with
+
+## 🧰 Technology Stack
+
+| Area | Technology |
+|---|---|
+| Language | Python |
+| Deep learning | PyTorch |
+| Condition classifier | EfficientNet-B0 |
+| Image processing | OpenCV, NumPy, Pillow |
+| Super-resolution | Real-ESRGAN |
+| Object detection | Ultralytics YOLO |
+| Vision-language model | SmolVLM-500M-Instruct |
+| Data handling | Pandas |
+| Visualization | Matplotlib |
+
 ---
-🔮 Future Improvements
-[ ] Expand the adverse-weather dataset
-[ ] Fine-tune the detector for weather-specific scenes
-[ ] Optimize Real-ESRGAN inference speed
-[ ] Add batch/video inference
-[ ] Compare multiple YOLO variants systematically
-[ ] Add automated evaluation reports
-[ ] Deploy the final pipeline as an API
+
+## ⚠️ Limitations
+
+Being upfront about where the project stands:
+
+- The classifier reaches 83.33% test accuracy, so some images will be misrouted. The 80% gate reduces, but does not remove, that risk.
+- The dataset is limited in size and diversity; performance may drop on unseen cameras, regions or mixed conditions (for example fog at night).
+- Real-ESRGAN ×4 is computationally heavy and noticeably slows inference without a GPU.
+- Detection recall (57.86%) shows that small or partly hidden objects are still missed.
+- SmolVLM explanations are descriptive and may occasionally be generic or inaccurate; they are not a rigorous attribution method.
+
 ---
-👩‍💻 Author
-Lakshana Devi M
-AI & Data Science Student  
-Computer Vision • AI/ML • Generative AI
+
+## 🔮 Roadmap
+
+- [ ] Expand the adverse-weather dataset and add mixed-condition samples
+- [ ] Fine-tune the detector on weather-specific scenes
+- [ ] Ablation study: no processing vs. enhancement only vs. enhancement + ESRGAN
+- [ ] Optimize Real-ESRGAN inference speed
+- [ ] Batch and video inference
+- [ ] Compare YOLO variants systematically
+- [ ] Automated evaluation reports
+- [ ] Deploy as an API
+
 ---
-⭐ Acknowledgement
-This project brings together open-source computer vision and vision-language technologies including PyTorch, Ultralytics YOLO, Real-ESRGAN, and SmolVLM.
-If you find the project useful, consider giving the repository a ⭐.
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome. For larger changes, open an issue first to discuss the idea.
+
 ---
-📄 License
-This project is intended for academic and research purposes.
-See the repository license for usage details.
+
+## ⭐ Acknowledgements
+
+Built on open-source work from PyTorch, Ultralytics YOLO, Real-ESRGAN and Hugging Face SmolVLM. If the project helps you, consider giving the repository a ⭐.
+
+## 📄 License
+
+Intended for academic and research purposes. See the repository license for usage details.
