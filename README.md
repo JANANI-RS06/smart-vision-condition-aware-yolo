@@ -1,4 +1,4 @@
-🌦️ Smart Vision — Condition-Aware Object Detection
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/efc3b36d-c440-4442-8544-f93975749c10" />🌦️ Smart Vision — Condition-Aware Object Detection
 <p align="center">
   <img src="assets/smart-vision-overview.png" alt="Smart Vision project overview" width="100%">
 </p>
@@ -33,60 +33,8 @@ Condition	Purpose
 🏜️ Sand-Dust	Handle dusty environments
 ❄️ Snow	Process snow-affected scenes
 ---
-🧩 System Architecture
-```text
-                         ┌──────────────────┐
-                         │    Input Image   │
-                         └────────┬─────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────┐
-                    │ EfficientNet-B0         │
-                    │ Condition Classification│
-                    └───────────┬─────────────┘
-                                │
-                                ▼
-                    ┌─────────────────────────┐
-                    │    Confidence Gate      │
-                    │       Threshold 80%     │
-                    └───────────┬─────────────┘
-                                │
-                   ┌────────────┴────────────┐
-                   │                         │
-                Normal                 Difficult Condition
-                   │                         │
-                   │                         ▼
-                   │              Condition-Specific
-                   │                 Preprocessing
-                   │                         │
-                   │                         ▼
-                   │                  Real-ESRGAN
-                   │                 Super-Resolution
-                   │                         │
-                   └────────────┬────────────┘
-                                ▼
-                         ┌──────────────┐
-                         │     YOLO     │
-                         │ Object Detect│
-                         └──────┬───────┘
-                                │
-                                ▼
-                     ┌────────────────────┐
-                     │ Detected Objects   │
-                     └─────────┬──────────┘
-                               │
-                               ▼
-                     ┌────────────────────┐
-                     │ SmolVLM-500M       │
-                     │ Visual Explanation │
-                     └─────────┬──────────┘
-                               │
-                               ▼
-                  ┌──────────────────────────┐
-                  │ Annotated Image +        │
-                  │ Natural-Language Output  │
-                  └──────────────────────────┘
-```
+
+
 ---
 ✨ Why This Pipeline?
 Traditional object detection pipelines often apply the same preprocessing to every image.
